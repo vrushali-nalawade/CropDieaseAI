@@ -6,13 +6,16 @@ from PIL import Image
 import io
 import os
 
+# ======================
+# FLASK SETUP
+# ======================
 app = Flask(__name__)
 CORS(app)
 
 # ======================
 # MODEL PATH
 # ======================
-MODEL_PATH = os.path.join("model", "corn_disease_final_model.h5")
+MODEL_PATH = "corn_disease_final_model.h5"
 
 # ======================
 # CLASS LABELS
@@ -24,6 +27,9 @@ CLASS_NAMES = [
     "Powdery Mildew"
 ]
 
+# ======================
+# LOAD MODEL
+# ======================
 print("Loading model...")
 model = tf.keras.models.load_model(MODEL_PATH)
 
@@ -38,18 +44,13 @@ print("Model ready 🚀")
 # ======================
 @app.route("/", methods=["GET"])
 def home():
-    return "Flask server running"
+    return "Crop Disease Detection API Running 🚜🌱"
 
 # ======================
-# PREDICTION
+# PREDICTION ROUTE
 # ======================
-
-
 @app.route("/predict", methods=["POST"])
 def predict():
-    print("📥 Request received")
-
-
 
     if "image" not in request.files:
         return jsonify({"error": "No image uploaded"}), 400
@@ -66,25 +67,12 @@ def predict():
         preds = model.predict(img)[0]
         idx = int(np.argmax(preds))
 
-        print("✅ Prediction:", CLASS_NAMES[idx])
-
         return jsonify({
             "disease": CLASS_NAMES[idx],
             "confidence": float(preds[idx])
         })
 
     except Exception as e:
-        print("❌ Error:", str(e))
         return jsonify({"error": str(e)}), 500
 
 
-# ======================
-# RUN SERVER
-# ======================
-if __name__ == "__main__":
-    app.run(
-        host="0.0.0.0",
-        port=5000,
-        threaded=True,
-        debug=True
-    )
